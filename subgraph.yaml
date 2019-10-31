@@ -1,0 +1,38 @@
+specVersion: 0.0.1
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Contract
+    network: ropsten
+    source:
+      address: "0xaC116929b2baB59D05a1Da99303e7CAEd100ECC9"
+      abi: Contract
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.2
+      language: wasm/assemblyscript
+      entities:
+        - RelayedMessage
+        - GasPriceChanged
+        - RequiredBlockConfirmationChanged
+        - DailyLimitChanged
+        - ExecutionDailyLimitChanged
+        - EternalOwnershipTransferred
+      abis:
+        - name: Contract
+          file: ./abis/Contract.json
+      eventHandlers:
+        - event: RelayedMessage(address,uint256,bytes32)
+          handler: handleRelayedMessage
+        - event: GasPriceChanged(uint256)
+          handler: handleGasPriceChanged
+        - event: RequiredBlockConfirmationChanged(uint256)
+          handler: handleRequiredBlockConfirmationChanged
+        - event: DailyLimitChanged(uint256)
+          handler: handleDailyLimitChanged
+        - event: ExecutionDailyLimitChanged(uint256)
+          handler: handleExecutionDailyLimitChanged
+        - event: EternalOwnershipTransferred(address,address)
+          handler: handleEternalOwnershipTransferred
+      file: ./src/mapping.ts
