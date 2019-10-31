@@ -1,38 +1,54 @@
-specVersion: 0.0.1
+specVersion: 0.0.2
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: Contract
+    name: ForeignBridgeFactory
     network: ropsten
     source:
       address: "0xaC116929b2baB59D05a1Da99303e7CAEd100ECC9"
-      abi: Contract
+      abi: ForeignBridgeFactory
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.2
+      apiVersion: 0.0.3
       language: wasm/assemblyscript
       entities:
-        - RelayedMessage
-        - GasPriceChanged
-        - RequiredBlockConfirmationChanged
-        - DailyLimitChanged
-        - ExecutionDailyLimitChanged
-        - EternalOwnershipTransferred
+        - ForeignBridgeDeployedEvent
       abis:
-        - name: Contract
-          file: ./abis/Contract.json
+        - name: ForeignBridgeFactory
+          file: ./abis/ForeignBridgeFactory.json
       eventHandlers:
-        - event: RelayedMessage(address,uint256,bytes32)
-          handler: handleRelayedMessage
-        - event: GasPriceChanged(uint256)
-          handler: handleGasPriceChanged
-        - event: RequiredBlockConfirmationChanged(uint256)
-          handler: handleRequiredBlockConfirmationChanged
-        - event: DailyLimitChanged(uint256)
-          handler: handleDailyLimitChanged
-        - event: ExecutionDailyLimitChanged(uint256)
-          handler: handleExecutionDailyLimitChanged
-        - event: EternalOwnershipTransferred(address,address)
-          handler: handleEternalOwnershipTransferred
+        - event: ForeignBridgeDeployed(indexed address,indexed address,uint256)
+          handler: handleForeignBridgeDeployed
       file: ./src/mapping.ts
+templates:
+  - kind: ethereum/contract
+    name: Token
+    network: ropsten
+    source:
+      abi: Token
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.3
+      language: wasm/assemblyscript
+      file: ./src/mapping.ts
+      entities:
+        - Token
+      abis:
+        - name: Token
+          file: ./abis/BasicToken.json
+  - kind: ethereum/contract
+    name: ForeignBridgeErcToErc
+    network: ropsten
+    source:
+      abi: ForeignBridgeErcToErc
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.3
+      language: wasm/assemblyscript
+      file: ./src/mapping.ts
+      entities:
+        - ForeignBridgeErcToErc
+      abis:
+        - name: ForeignBridgeErcToErc
+          file: ./abis/ForeignBridgeErcToErc.json

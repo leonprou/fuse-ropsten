@@ -1,38 +1,28 @@
 import { BigInt } from "@graphprotocol/graph-ts"
 import {
-  Contract,
-  RelayedMessage,
-  GasPriceChanged,
-  RequiredBlockConfirmationChanged,
-  DailyLimitChanged,
-  ExecutionDailyLimitChanged,
-  EternalOwnershipTransferred
-} from "../generated/Contract/Contract"
-import { ExampleEntity } from "../generated/schema"
+  ForeignBridgeDeployed
+} from "../generated/ForeignBridgeFactory/ForeignBridgeFactory"
+// import { UserRequestForSignature, CollectedSignatures } from "../generated/templates/HomeBridgeErcToErc/HomeBridgeErcToErc"
+// import { ExampleEntity } from "../generated/schema"
+import { Token as TokenContract, ForeignBridgeErcToErc as ForeignBridgeErcToErcContract } from "../generated/templates"
+import { ForeignBridgeErcToErc } from "../generated/schema"
 
-export function handleRelayedMessage(event: RelayedMessage): void {
+export function handleForeignBridgeDeployed(event: ForeignBridgeDeployed): void {
   // Entities can be loaded from the store using a string ID; this ID
   // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
+  let foreignBridge = ForeignBridgeErcToErc.load(event.params._foreignBridge.toHex())
 
   // Entities only exist after they have been saved to the store;
   // `null` checks allow to create entities on demand
-  if (entity == null) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
-
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
+  if (foreignBridge == null) {
+    foreignBridge = new ForeignBridgeErcToErc(event.params._foreignBridge.toHex())
   }
 
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
-
   // Entity fields can be set based on event parameters
-  entity.recipient = event.params.recipient
-  entity.value = event.params.value
+  foreignBridge.address = event.params._foreignBridge
 
   // Entities can be written to the store with `.save()`
-  entity.save()
+  foreignBridge.save()
 
   // Note: If a handler doesn't require existing field values, it is faster
   // _not_ to load the entity from the store. Instead, create it fresh with
@@ -74,19 +64,3 @@ export function handleRelayedMessage(event: RelayedMessage): void {
   // - contract.erc20token(...)
   // - contract.onTokenTransfer(...)
 }
-
-export function handleGasPriceChanged(event: GasPriceChanged): void {}
-
-export function handleRequiredBlockConfirmationChanged(
-  event: RequiredBlockConfirmationChanged
-): void {}
-
-export function handleDailyLimitChanged(event: DailyLimitChanged): void {}
-
-export function handleExecutionDailyLimitChanged(
-  event: ExecutionDailyLimitChanged
-): void {}
-
-export function handleEternalOwnershipTransferred(
-  event: EternalOwnershipTransferred
-): void {}
