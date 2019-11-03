@@ -21,5 +21,6 @@ type TransferEvent @entity {
   from: Bytes!
   to: Bytes!
   value: BigInt!
+  data: Bytes
   tokenAddress: Bytes
 }

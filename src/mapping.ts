@@ -7,7 +7,8 @@ import {
   // DeployForeignBridgeCall
 } from "../generated/ForeignBridgeFactory/ForeignBridgeErcToErc"
 import {
-  Transfer
+  Transfer as TransferWithData,
+  Transfer1 as Transfer
 } from "../generated/templates/Token/Token"
 import {
   Token as TokenContract
@@ -61,9 +62,27 @@ export function handleTransfer(event: Transfer): void {
   entity.to = event.params.to
   entity.value = event.params.value
   entity.tokenAddress = event.transaction.to as Bytes
+  entity.save()
+}
+
+export function handleTransferWithData(event: TransferWithData): void {
+  log.info('hello haha3', [])
+  const id = event.transaction.hash.toHexString() + '_' + event.transactionLogIndex.toString() as string
+  let entity = TransferEvent.load(id)
+  if (entity == null) {
+    entity = new TransferEvent(id)
+  }
+  entity.txHash = event.transaction.hash
+  entity.blockNumber = event.block.number
+  entity.from = event.params.from
+  entity.to = event.params.to
+  entity.value = event.params.value
+  entity.tokenAddress = event.transaction.to as Bytes
+  entity.data = event.params.data
 
   entity.save()
 }
+
 // export function handleDeployForeignBridge(call: DeployForeignBridgeCall): void {
 //   log.warning('leonn ID: {}',[call.to.toString()])
 //   const id = call.to.toHex()
