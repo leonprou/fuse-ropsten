@@ -2,14 +2,30 @@ import { BigInt } from "@graphprotocol/graph-ts"
 import {
   ForeignBridgeDeployed
 } from "../generated/ForeignBridgeFactory/ForeignBridgeFactory"
+import {
+  ForeignBridgeErcToErc as ForeignBridgeErcToErcContract,
+  // DeployForeignBridgeCall
+} from "../generated/ForeignBridgeFactory/ForeignBridgeErcToErc"
+import {
+  Transfer
+} from "../generated/templates/Token/Token"
+import {
+  Token as TokenContract
+} from "../generated/templates"
+// import {
+//   ForeignBridgeErcToErc as ForeignBridgeErcToErcContract,
+// } from "../generated/templates/ForeignBridgeErcToErc/ForeignBridgeErcToErc"
 // import { UserRequestForSignature, CollectedSignatures } from "../generated/templates/HomeBridgeErcToErc/HomeBridgeErcToErc"
 // import { ExampleEntity } from "../generated/schema"
-import { Token as TokenContract, ForeignBridgeErcToErc as ForeignBridgeErcToErcContract } from "../generated/templates"
-import { ForeignBridgeErcToErc } from "../generated/schema"
+// import { Token as TokenContract, ForeignBridgeErcToErc as ForeignBridgeErcToErcContract } from "../generated/templates"
+import { ForeignBridgeErcToErc, TransferEvent } from "../generated/schema"
+import { log } from '@graphprotocol/graph-ts'
+import { Address, Bytes } from '@graphprotocol/graph-ts'
 
 export function handleForeignBridgeDeployed(event: ForeignBridgeDeployed): void {
   // Entities can be loaded from the store using a string ID; this ID
   // needs to be unique across all entities of the same type
+  log.info('hello haha2', [])
   let foreignBridge = ForeignBridgeErcToErc.load(event.params._foreignBridge.toHex())
 
   // Entities only exist after they have been saved to the store;
@@ -21,46 +37,42 @@ export function handleForeignBridgeDeployed(event: ForeignBridgeDeployed): void 
   // Entity fields can be set based on event parameters
   foreignBridge.address = event.params._foreignBridge
 
-  // Entities can be written to the store with `.save()`
+  const contract = ForeignBridgeErcToErcContract.bind(foreignBridge.address as Address)
+  foreignBridge.tokenAddress = contract.erc20token().toHexString()
   foreignBridge.save()
 
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
-
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.relayedMessages(...)
-  // - contract.totalSpentPerDay(...)
-  // - contract.isInitialized(...)
-  // - contract.getCurrentDay(...)
-  // - contract.requiredBlockConfirmations(...)
-  // - contract.executionDailyLimit(...)
-  // - contract.totalExecutedPerDay(...)
-  // - contract.dailyLimit(...)
-  // - contract.withinExecutionLimit(...)
-  // - contract.executionMaxPerTx(...)
-  // - contract.requiredSignatures(...)
-  // - contract.owner(...)
-  // - contract.validatorContract(...)
-  // - contract.deployedAtBlock(...)
-  // - contract.getBridgeInterfacesVersion(...)
-  // - contract.upgradeabilityAdmin(...)
-  // - contract.minPerTx(...)
-  // - contract.withinLimit(...)
-  // - contract.maxPerTx(...)
-  // - contract.gasPrice(...)
-  // - contract.initialize(...)
-  // - contract.getBridgeMode(...)
-  // - contract.erc20token(...)
-  // - contract.onTokenTransfer(...)
+  TokenContract.create(contract.erc20token())
+  // if (TokenContract.load(foreignBridge.tokenAddress)) {
+  //   TokenContract.create(foreignBridge.tokenAddress)
+  // }
+  // TokenContract
 }
+
+export function handleTransfer(event: Transfer): void {
+  log.info('hello haha3', [])
+  const id = event.transaction.hash.toHexString() + '_' + event.transactionLogIndex.toString() as string
+  let entity = TransferEvent.load(id)
+  if (entity == null) {
+    entity = new TransferEvent(id)
+  }
+  entity.txHash = event.transaction.hash
+  entity.blockNumber = event.block.number
+  entity.from = event.params.from
+  entity.to = event.params.to
+  entity.value = event.params.value
+  entity.tokenAddress = event.transaction.to as Bytes
+
+  entity.save()
+}
+// export function handleDeployForeignBridge(call: DeployForeignBridgeCall): void {
+//   log.warning('leonn ID: {}',[call.to.toString()])
+//   const id = call.to.toHex()
+//   let foreignBridge = ForeignBridgeErcToErc.load(id)
+
+//   if (foreignBridge == null) {
+//     foreignBridge = new ForeignBridgeErcToErc(id)
+//   }
+//   foreignBridge.address = call.to
+//   foreignBridge.tokenAddress = call.inputs._erc20Token
+//   foreignBridge.save()
+// }
